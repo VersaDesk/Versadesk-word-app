@@ -1,0 +1,36 @@
+# 依賴目錄
+node_modules/
+.pnpm-store/
+
+# 建置輸出
+dist/
+out/
+.angular/
+
+# 環境設定
+.env
+.env.local
+.env.*.local
+
+# 編輯器設定
+.idea/
+.vscode/settings.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 系統檔案
+.DS_Store
+Thumbs.db
+
+# 暫存
+*.log
+npm-debug.log*
+
+# TypeScript 建置輸出
+out-tsc/
+
+# 測試覆蓋率
+coverage/

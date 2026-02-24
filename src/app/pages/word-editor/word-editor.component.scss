@@ -1,0 +1,699 @@
+// ── 版面配置 ─────────────────────────────────────────────
+.editor-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: var(--surface-secondary);
+}
+
+// ── 螢幕閱讀器輔助 ────────────────────────────────────────
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+// ── 工具列 ───────────────────────────────────────────────
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  height: 56px;
+  min-height: 56px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  z-index: 100;
+  flex-shrink: 0;
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  &__logo {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  &__title {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+
+  &__app-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  &__subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  &__file-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    background: var(--surface-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    flex: 1;
+    min-width: 0;
+    max-width: 360px;
+  }
+
+  &__file-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    color: var(--primary);
+
+    svg { width: 100%; height: 100%; }
+  }
+
+  &__file-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  &__file-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__file-type {
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--primary);
+    background: var(--primary-light);
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+}
+
+// ── 按鈕系統 ─────────────────────────────────────────────
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+  text-decoration: none;
+  line-height: 1;
+
+  svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  // 主要按鈕
+  &--primary {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: var(--shadow-sm);
+
+    &:hover:not(:disabled) {
+      background: var(--primary-hover);
+      border-color: var(--primary-hover);
+      box-shadow: var(--shadow);
+      transform: translateY(-1px);
+    }
+
+    &:active { transform: translateY(0); }
+  }
+
+  // 次要按鈕
+  &--secondary {
+    background: white;
+    color: var(--text-primary);
+    border-color: var(--border);
+    box-shadow: var(--shadow-sm);
+
+    &:hover:not(:disabled) {
+      background: var(--surface-secondary);
+      border-color: var(--border-hover);
+    }
+  }
+
+  // 輪廓按鈕
+  &--outline {
+    background: transparent;
+    color: var(--primary);
+    border-color: var(--primary);
+
+    &:hover:not(:disabled) {
+      background: var(--primary-light);
+    }
+  }
+
+  // 圖示按鈕
+  &--icon {
+    padding: 7px 10px;
+    background: transparent;
+    color: var(--text-secondary);
+    border-color: var(--border);
+
+    &:hover:not(:disabled) {
+      background: var(--surface-secondary);
+      color: var(--text-primary);
+    }
+
+    &.btn--active {
+      background: var(--primary-light);
+      color: var(--primary);
+      border-color: #bfdbfe;
+    }
+  }
+
+  // 大尺寸
+  &--lg {
+    padding: 11px 22px;
+    font-size: 14px;
+
+    svg {
+      width: 17px;
+      height: 17px;
+    }
+  }
+
+  &__label {
+    font-size: 11px;
+  }
+}
+
+// ── 主內容區 ─────────────────────────────────────────────
+.editor-main {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+// ── OnlyOffice 編輯器容器 ─────────────────────────────────
+.onlyoffice-container {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+
+  // OnlyOffice 內部 iframe 樣式
+  :host ::ng-deep iframe {
+    border: none;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  &--hidden {
+    /* 不使用 display:none 或 position:absolute！
+       那樣會讓容器變成 0x0，OnlyOffice iframe 無法初始化。
+       改用 opacity:0 讓容器保持原本尺寸，由 loading overlay 覆蓋視覺。 */
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+// ── 狀態覆蓋層 ───────────────────────────────────────────
+.state-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  background: var(--surface-secondary);
+
+  &--loading {
+    background: rgba(248, 250, 252, 0.95);
+    backdrop-filter: blur(4px);
+  }
+}
+
+// ── 載入卡片 ─────────────────────────────────────────────
+.loading-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 48px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+
+  svg { width: 100%; height: 100%; }
+}
+
+.loading-message {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.loading-dots {
+  display: flex;
+  gap: 6px;
+
+  span {
+    width: 6px;
+    height: 6px;
+    background: var(--primary);
+    border-radius: 50%;
+    animation: pulse 1.4s ease-in-out infinite;
+
+    &:nth-child(2) { animation-delay: 0.2s; }
+    &:nth-child(3) { animation-delay: 0.4s; }
+  }
+}
+
+// ── 錯誤卡片 ─────────────────────────────────────────────
+.error-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 48px;
+  background: white;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  max-width: 480px;
+  width: 90%;
+  text-align: center;
+}
+
+.error-icon {
+  width: 52px;
+  height: 52px;
+  background: #fef2f2;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--danger);
+
+  svg { width: 28px; height: 28px; }
+}
+
+.error-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.error-message {
+  font-size: 13px;
+  color: var(--danger);
+  background: #fef2f2;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  width: 100%;
+  word-break: break-word;
+}
+
+.error-hint {
+  text-align: left;
+  width: 100%;
+  font-size: 13px;
+  color: var(--text-secondary);
+
+  p {
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  ul {
+    padding-left: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    li { line-height: 1.5; }
+  }
+
+  code {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 12px;
+    background: var(--surface-secondary);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--primary);
+  }
+}
+
+.error-actions {
+  margin-top: 4px;
+}
+
+// ── 上傳區域 ─────────────────────────────────────────────
+.upload-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  transition: background 0.2s ease;
+
+  &--dragover {
+    background: var(--primary-light);
+
+    .upload-content {
+      border-color: var(--primary);
+      background: white;
+    }
+
+    .upload-illustration .upload-icon-wrapper {
+      transform: scale(1.05);
+    }
+  }
+}
+
+.upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  padding: 48px 56px;
+  background: white;
+  border: 2px dashed var(--border-hover);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+  max-width: 560px;
+  width: 100%;
+  transition: all 0.25s ease;
+
+  &:hover {
+    border-color: #93c5fd;
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+// ── 上傳插圖 ─────────────────────────────────────────────
+.upload-illustration {
+  position: relative;
+}
+
+.upload-icon-wrapper {
+  position: relative;
+  display: inline-block;
+  transition: transform 0.3s ease;
+
+  &:hover { transform: scale(1.05); }
+}
+
+.upload-doc-icon {
+  width: 80px;
+  height: 96px;
+  filter: drop-shadow(0 4px 12px rgba(37, 99, 235, 0.15));
+}
+
+.upload-arrow {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 28px;
+  height: 28px;
+  background: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+  animation: bounceUpDown 2s ease-in-out infinite;
+
+  svg {
+    width: 14px;
+    height: 14px;
+
+    path { stroke: white; }
+  }
+}
+
+@keyframes bounceUpDown {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+// ── 上傳文字 ─────────────────────────────────────────────
+.upload-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.upload-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.upload-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.upload-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--surface-secondary);
+  padding: 4px 12px;
+  border-radius: 20px;
+  display: inline-block;
+  margin: 2px auto 0;
+}
+
+// ── 上傳操作 ─────────────────────────────────────────────
+.upload-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.upload-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 200px;
+  color: var(--text-muted);
+  font-size: 12px;
+
+  &::before, &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+}
+
+// ── 功能特點列表 ─────────────────────────────────────────
+.feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 16px 20px;
+  background: var(--surface-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  text-align: left;
+  line-height: 1.5;
+}
+
+.feature-icon {
+  flex-shrink: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+// ── 通知訊息 ─────────────────────────────────────────────
+.notification {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  font-size: 13.5px;
+  font-weight: 500;
+  max-width: 380px;
+  z-index: 1000;
+  animation: slideUp 0.3s ease forwards;
+
+  &__icon {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+
+    svg { width: 100%; height: 100%; }
+  }
+
+  &__message {
+    line-height: 1.4;
+  }
+
+  // 成功
+  &--success {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+
+    .notification__icon { color: var(--success); }
+  }
+
+  // 錯誤
+  &--error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+
+    .notification__icon { color: var(--danger); }
+  }
+
+  // 資訊
+  &--info {
+    background: var(--primary-light);
+    border: 1px solid #bfdbfe;
+    color: #1e40af;
+
+    .notification__icon { color: var(--primary); }
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ── 響應式 ───────────────────────────────────────────────
+@media (max-width: 768px) {
+  .toolbar {
+    padding: 0 12px;
+    height: 52px;
+    gap: 8px;
+
+    &__subtitle { display: none; }
+    &__file-info { max-width: 180px; }
+
+    &__actions { gap: 6px; }
+  }
+
+  .btn {
+    padding: 6px 10px;
+    font-size: 12px;
+
+    span:not(.btn__label) { display: none; }
+
+    &--lg {
+      padding: 10px 16px;
+      font-size: 13px;
+
+      span { display: inline; }
+    }
+  }
+
+  .upload-content {
+    padding: 32px 24px;
+  }
+
+  .upload-title { font-size: 18px; }
+
+  .notification {
+    left: 12px;
+    right: 12px;
+    bottom: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .upload-actions {
+    .btn--lg { width: 100%; }
+  }
+}
