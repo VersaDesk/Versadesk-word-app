@@ -41,7 +41,14 @@ export const FILE_MIME_MAP: Record<string, string> = {
 /**
  * Word 文件允許的副檔名
  */
-export const ALLOWED_WORD_EXTENSIONS = ['.docx', '.doc', '.odt', '.rtf', '.txt'];
+export const ALLOWED_WORD_EXTENSIONS = ['.docx', '.odt', '.rtf', '.txt'];
+
+/**
+ * 不支援的副檔名（x2t WASM 未包含舊版格式解析器）
+ */
+export const UNSUPPORTED_EXTENSIONS_MSG: Record<string, string> = {
+  '.doc': '不支援舊版 .doc 格式，請先用 Word 另存為 .docx 後再上傳',
+};
 
 /**
  * 預設語言設定（繁體中文）

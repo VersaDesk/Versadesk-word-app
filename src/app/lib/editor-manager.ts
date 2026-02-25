@@ -57,30 +57,18 @@ export class EditorManager {
 
   /**
    * 觸發文件儲存/匯出
-   * OnlyOffice 會透過 onDownloadAs 事件回傳資料
+   * 透過 downloadAs gateway 命令觸發，SDK 序列化後透過 writeFile 事件回傳
    */
   async export(): Promise<void> {
     if (!this.instance) {
       throw new Error(`編輯器實例 "${this.instanceId}" 不存在`);
     }
 
-    // 觸發 OnlyOffice 的 downloadAs 命令
-    try {
-      this.instance.serviceCommand?.('save', { saveAsType: 'docx' });
-    } catch {
-      // 嘗試另一種方式
-      try {
-        // 透過 DOM 觸發儲存快捷鍵
-        const event = new KeyboardEvent('keydown', {
-          key: 's',
-          ctrlKey: true,
-          bubbles: true
-        });
-        document.dispatchEvent(event);
-      } catch (err) {
-        console.error('[EditorManager] 觸發匯出失敗:', err);
-      }
+    if (!this.instance.sendCommand) {
+      throw new Error('sendCommand 不可用');
     }
+
+    this.instance.sendCommand({ command: 'downloadAs', data: 'docx' });
   }
 
   /**

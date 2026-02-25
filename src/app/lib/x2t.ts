@@ -235,7 +235,7 @@ function convertDocumentToOnlyofficeBin(
   x2t: EmscriptenX2tModule,
   fileData: Uint8Array,
   fileName: string
-): { bin: Uint8Array; media: Record<string, string> } {
+): { bin: string; media: Record<string, string> } {
   const safeName = fileName.replace(/[^\w.\-]/g, '_');
   const inputPath = `/working/${safeName}`;
   const outputPath = `${inputPath}.bin`;
@@ -256,7 +256,8 @@ function convertDocumentToOnlyofficeBin(
     throw new Error(`文件轉換失敗（錯誤碼：${result}）`);
   }
 
-  const bin = x2t.FS.readFile(outputPath);
+  // 讀取為字串（與 g_sEmpty_bin 格式一致：'DOCY;v5;...'）
+  const bin = x2t.FS.readFile(outputPath, { encoding: 'utf8' }) as unknown as string;
 
   // 讀取媒體檔案
   const media: Record<string, string> = {};
@@ -271,6 +272,39 @@ function convertDocumentToOnlyofficeBin(
   } catch { /* 沒有媒體目錄 */ }
 
   return { bin, media };
+}
+
+/**
+ * 將 DOCY 內部格式（SDK 序列化結果）轉換回 DOCX 二進位
+ * 這是 convertDocumentToOnlyofficeBin 的反向操作
+ */
+function convertBinToDocx(
+  x2t: EmscriptenX2tModule,
+  docyData: string,
+): Uint8Array {
+  const inputPath = '/working/_export.bin';
+  const outputPath = '/working/_export.docx';
+
+  // 將 DOCY 資料寫入虛擬檔案系統
+  x2t.FS.writeFile(inputPath, docyData);
+
+  const params = `<?xml version="1.0" encoding="utf-8"?>
+<TaskQueueDataConvert xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <m_sFileFrom>${inputPath}</m_sFileFrom>
+  <m_sThemeDir>/working/themes</m_sThemeDir>
+  <m_sFileTo>${outputPath}</m_sFileTo>
+  <m_bIsNoBase64>false</m_bIsNoBase64>
+</TaskQueueDataConvert>`;
+
+  x2t.FS.writeFile('/working/params_export.xml', params);
+  const result = x2t.ccall('main1', 'number', ['string'], ['/working/params_export.xml']);
+  if (result !== 0) {
+    throw new Error(`DOCY→DOCX 轉換失敗（錯誤碼：${result}）`);
+  }
+
+  // 讀取為二進位
+  const docxBytes = x2t.FS.readFile(outputPath);
+  return docxBytes;
 }
 
 // ── SDK 載入 ─────────────────────────────────────────────
@@ -327,7 +361,7 @@ export class X2tService {
       });
 
       const fileType = isNew ? 'docx' : getFileExtension(fileName);
-      let binData: ArrayBuffer | string;
+      let binData: string;
       let media: Record<string, string> | undefined;
 
       if (isNew) {
@@ -355,14 +389,16 @@ export class X2tService {
       });
       await loadSdk(SDK_CONFIG.apiScriptPath);
 
-      // ── 3. 確認容器存在 ────────────────────────────────
+      // ── 3. 銷毀舊編輯器（必須先執行，destroyEditor 會重建容器 div）──
+      const manager = this.managerFactory.create(containerId);
+      if (manager.exists()) {
+        manager.destroy();
+      }
+
+      // ── 4. 確認容器存在 ────────────────────────────────
       await nextTick();
       const container = document.getElementById(containerId);
       if (!container) throw new Error(`容器 #${containerId} 不在 DOM 中`);
-
-      // ── 4. 銷毀舊編輯器 ────────────────────────────────
-      const manager = this.managerFactory.create(containerId);
-      manager.destroy();
 
       // ── 5. 建立 OnlyOffice 編輯器 ─────────────────────
       this.eventbus.emit(ONLYOFFICE_EVENT_KEYS.LOADING_CHANGE, {
@@ -371,6 +407,9 @@ export class X2tService {
 
       const capturedMedia = media;
       const capturedBinData = binData;
+
+      // ── 用於 onSave 分塊累積 ──
+      let saveChunks: string[] = [];
 
       const config: OnlyOfficeConfig = {
         document: {
@@ -381,6 +420,7 @@ export class X2tService {
             chat: false,
             protect: false,
             print: false,
+            download: true,
           },
         },
         editorConfig: {
@@ -429,6 +469,69 @@ export class X2tService {
           },
           writeFile: (event: any) => {
             this.handleWriteFile(event, fileName || '未命名文件.docx', containerId);
+            // 回傳 callback 讓 SDK 完成儲存流程
+            const inst = manager.get();
+            inst?.sendCommand?.({ command: 'asc_writeFileCallback', data: undefined });
+          },
+          onSave: (event: any) => {
+            // asc_DownloadAs 轉換完成後，SDK 透過 onSave 事件傳回 DOCY 內部格式資料
+            // event.data = { option: saveOptions, data: chunkInfo }
+            // chunkInfo = { data: docyString, hHc: chunkStr|null, index, count }
+            console.log('[OnlyOffice] onSave event received');
+            try {
+              const option = event?.data?.option;
+              const chunkInfo = event?.data?.data;
+              if (!chunkInfo) {
+                console.error('[OnlyOffice] onSave: chunkInfo 為空');
+                return;
+              }
+
+              // 取得當前塊的 DOCY 資料
+              const chunkData = chunkInfo.hHc || chunkInfo.data;
+              if (chunkData && typeof chunkData === 'string') {
+                saveChunks.push(chunkData);
+              }
+
+              const isSingleChunk = chunkInfo.hHc == null && chunkInfo.count === 0;
+              const isLastChunk = !isSingleChunk && chunkInfo.index >= chunkInfo.count;
+
+              if (isSingleChunk || isLastChunk) {
+                // 所有塊已接收，合併為完整 DOCY 字串
+                const docyString = saveChunks.join('');
+                saveChunks = [];
+
+                const outputName = option?.title || fileName || '未命名文件.docx';
+                console.log('[OnlyOffice] onSave: DOCY 資料長度:', docyString.length,
+                  '前 40 字元:', docyString.substring(0, 40));
+
+                // 使用 x2t WASM 將 DOCY 轉換為 DOCX
+                initX2t().then(x2t => {
+                  const docxBytes = convertBinToDocx(x2t, docyString);
+                  console.log('[OnlyOffice] DOCY→DOCX 轉換成功，大小:', docxBytes.byteLength);
+
+                  // 觸發下載
+                  this.eventbus.emit(ONLYOFFICE_EVENT_KEYS.SAVE_DOCUMENT, {
+                    fileName: outputName,
+                    fileType: getFileExtension(outputName),
+                    binData: docxBytes,
+                    instanceId: containerId,
+                  });
+                }).catch(err => {
+                  console.error('[OnlyOffice] DOCY→DOCX 轉換失敗:', err);
+                });
+
+                // 回傳 asc_onSaveCallback 完成 SDK 儲存流程
+                const inst = manager.get();
+                inst?.sendCommand?.({ command: 'asc_onSaveCallback', data: {} });
+              } else {
+                // 中間塊：回傳 callback 以請求下一塊
+                const inst = manager.get();
+                inst?.sendCommand?.({ command: 'asc_onSaveCallback', data: {} });
+              }
+            } catch (err) {
+              console.error('[OnlyOffice] onSave 處理失敗:', err);
+              saveChunks = [];
+            }
           },
           onError: (e: any) => {
             console.error('[OnlyOffice] 錯誤:', e?.data?.errorCode, e?.data?.errorDescription);

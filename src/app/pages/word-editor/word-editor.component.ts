@@ -20,7 +20,7 @@ import {
   DocumentReadyData,
   LoadingChangeData
 } from '../../lib/eventbus';
-import { ONLYOFFICE_EVENT_KEYS, ALLOWED_WORD_EXTENSIONS, SDK_CONFIG, FILE_MIME_MAP } from '../../lib/const';
+import { ONLYOFFICE_EVENT_KEYS, ALLOWED_WORD_EXTENSIONS, SDK_CONFIG, FILE_MIME_MAP, UNSUPPORTED_EXTENSIONS_MSG } from '../../lib/const';
 
 /** 應用程式狀態 */
 type AppState = 'idle' | 'loading' | 'ready' | 'error';
@@ -156,6 +156,14 @@ export class WordEditorComponent implements OnInit, OnDestroy {
 
   private async loadFile(file: File): Promise<void> {
     const ext = `.${getFileExtension(file.name)}`;
+
+    // 檢查是否為已知不支援的格式（如 .doc）
+    const unsupportedMsg = UNSUPPORTED_EXTENSIONS_MSG[ext];
+    if (unsupportedMsg) {
+      this.notify(unsupportedMsg, 'error', 6000);
+      return;
+    }
+
     if (!ALLOWED_WORD_EXTENSIONS.includes(ext)) {
       this.notify(`不支援的檔案格式：${ext}，請上傳 ${this.allowedExtensions} 格式`, 'error', 5000);
       return;
