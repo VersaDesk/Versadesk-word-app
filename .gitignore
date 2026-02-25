@@ -11,6 +11,7 @@ out/
 .env
 .env.local
 .env.*.local
+package-lock.json
 
 # 編輯器設定
 .idea/
@@ -34,3 +35,6 @@ out-tsc/
 
 # 測試覆蓋率
 coverage/
+
+#AI
+.claude/
