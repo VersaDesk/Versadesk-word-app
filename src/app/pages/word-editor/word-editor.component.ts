@@ -20,7 +20,7 @@ import {
   DocumentReadyData,
   LoadingChangeData
 } from '../../lib/eventbus';
-import { ONLYOFFICE_EVENT_KEYS, ALLOWED_WORD_EXTENSIONS, SDK_CONFIG, FILE_MIME_MAP, UNSUPPORTED_EXTENSIONS_MSG } from '../../lib/const';
+import { ONLYOFFICE_EVENT_KEYS, ALLOWED_WORD_EXTENSIONS, SDK_CONFIG, FILE_MIME_MAP, UNSUPPORTED_EXTENSIONS_MSG, DEFAULT_LANG } from '../../lib/const';
 
 /** 應用程式狀態 */
 type AppState = 'idle' | 'loading' | 'ready' | 'error';
@@ -179,7 +179,7 @@ export class WordEditorComponent implements OnInit, OnDestroy {
         fileName: file.name,
         isNew: false,
         readOnly: this.isReadOnly(),
-        lang: 'zh',
+        lang: DEFAULT_LANG,
         containerId: this.containerId,
       });
     } catch (err) {
@@ -247,7 +247,7 @@ export class WordEditorComponent implements OnInit, OnDestroy {
         fileName: newFileName,
         isNew: true,
         readOnly: false,
-        lang: 'zh',
+        lang: DEFAULT_LANG,
         containerId: this.containerId,
       });
     } catch (err) {
@@ -292,7 +292,7 @@ export class WordEditorComponent implements OnInit, OnDestroy {
           fileName: this.fileName(),
           isNew: false,
           readOnly: newReadOnly,
-          lang: 'zh',
+          lang: DEFAULT_LANG,
           containerId: this.containerId,
         });
         this.notify(newReadOnly ? '已切換為唯讀模式' : '已切換為編輯模式', 'info');

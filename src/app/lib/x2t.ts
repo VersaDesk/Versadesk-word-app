@@ -65,6 +65,21 @@ export function getFileExtension(fileName: string): string {
   return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : 'docx';
 }
 
+/**
+ * 確保檔名的副檔名與目標格式一致
+ * 例如：原檔名 "report.docx" + targetExt "pdf" → "report.pdf"
+ */
+function ensureExtension(fileName: string, targetExt: string): string {
+  const currentExt = getFileExtension(fileName);
+  if (currentExt === targetExt) return fileName;
+  // 替換副檔名
+  const dotIdx = fileName.lastIndexOf('.');
+  if (dotIdx > 0) {
+    return fileName.substring(0, dotIdx + 1) + targetExt;
+  }
+  return `${fileName}.${targetExt}`;
+}
+
 // ── WASM fetch 攔截（快取至 IndexedDB）──────────────────
 
 const WASM_CACHE_PATTERNS = [
@@ -182,6 +197,56 @@ async function putWasmToIDB(url: string, data: ArrayBuffer): Promise<void> {
 
 const X2T_SCRIPT_PATH = '/wasm/x2t/x2t.js';
 const X2T_WORKING_DIRS = ['/working', '/working/media', '/working/fonts', '/working/themes'];
+const X2T_FONT_DIR = '/working/fonts';
+
+/**
+ * PDF 匯出所需的字型檔案（從 /fonts/ 目錄 fetch 後寫入 WASM FS）
+ * 包含基本拉丁字型 + 繁體中文字型，足以涵蓋大多數文件
+ */
+const PDF_FONT_FILES = [
+  'LiberationSans-Regular.ttf',
+  'LiberationSans-Bold.ttf',
+  'LiberationSans-Italic.ttf',
+  'LiberationSans-BoldItalic.ttf',
+  'DejaVuSans.ttf',
+  'DejaVuSans-Bold.ttf',
+  'NotoSansTC-VF.ttf',
+  'NotoSerifTC-VF.ttf',
+];
+
+let _fontsLoaded = false;
+let _fontsLoadPromise: Promise<void> | null = null;
+
+/**
+ * 將 PDF 所需字型載入 WASM 虛擬檔案系統（僅在首次 PDF 匯出時觸發）
+ */
+function loadFontsToWasmFS(x2t: EmscriptenX2tModule): Promise<void> {
+  if (_fontsLoaded) return Promise.resolve();
+  if (_fontsLoadPromise) return _fontsLoadPromise;
+
+  _fontsLoadPromise = (async () => {
+    console.log('[X2t] 開始載入 PDF 字型...');
+    const results = await Promise.allSettled(
+      PDF_FONT_FILES.map(async (name) => {
+        const url = `/fonts/${name}`;
+        try {
+          const resp = await fetch(url);
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          const buf = await resp.arrayBuffer();
+          x2t.FS.writeFile(`${X2T_FONT_DIR}/${name}`, new Uint8Array(buf));
+          console.log(`[X2t] 字型已載入: ${name} (${(buf.byteLength / 1024).toFixed(0)} KB)`);
+        } catch (err) {
+          console.warn(`[X2t] 字型載入失敗 (略過): ${name}`, err);
+        }
+      })
+    );
+    const loaded = results.filter(r => r.status === 'fulfilled').length;
+    console.log(`[X2t] PDF 字型載入完成: ${loaded}/${PDF_FONT_FILES.length}`);
+    _fontsLoaded = true;
+  })();
+
+  return _fontsLoadPromise;
+}
 
 let _x2tModule: EmscriptenX2tModule | null = null;
 let _x2tInitPromise: Promise<EmscriptenX2tModule> | null = null;
@@ -275,36 +340,89 @@ function convertDocumentToOnlyofficeBin(
 }
 
 /**
- * 將 DOCY 內部格式（SDK 序列化結果）轉換回 DOCX 二進位
- * 這是 convertDocumentToOnlyofficeBin 的反向操作
+ * SDK 下載格式常數 → 副檔名對照表
+ * 參考 OnlyOffice c_oAscFileType 常數
  */
-function convertBinToDocx(
+const FORMAT_EXT_MAP: Record<number, string> = {
+  65: 'docx',   // DOCX
+  66: 'txt',    // TXT
+  67: 'doc',    // DOC（x2t 不一定支援輸出）
+  68: 'rtf',    // RTF
+  69: 'odt',    // ODT
+  70: 'html',   // HTML
+  71: 'epub',   // EPUB
+  72: 'dotx',   // DOTX
+  73: 'ott',    // OTT
+  513: 'pdf',   // PDF
+  769: 'pdf',   // PDFA
+};
+
+/**
+ * 從 SDK onSave 的 option 推斷目標副檔名
+ */
+function resolveTargetExt(option: any, fallbackFileName: string): string {
+  // 優先使用 SDK 格式常數
+  if (option?.fileType != null && FORMAT_EXT_MAP[option.fileType]) {
+    return FORMAT_EXT_MAP[option.fileType];
+  }
+  // 其次從 option.title 取副檔名
+  if (option?.title) {
+    const ext = getFileExtension(option.title);
+    if (ext && ext !== option.title) return ext;
+  }
+  // 最後從原始檔名
+  return getFileExtension(fallbackFileName) || 'docx';
+}
+
+/**
+ * 需要字型才能正確輸出的格式
+ */
+const FONT_REQUIRED_FORMATS = new Set(['pdf']);
+
+/**
+ * 將 DOCY 內部格式（SDK 序列化結果）轉換為目標格式（DOCX / PDF / …）
+ * 這是 convertDocumentToOnlyofficeBin 的反向操作
+ * x2t 根據輸出檔案的副檔名自動決定轉換目標
+ *
+ * 對於 PDF 等需要字型的格式，會先載入字型到 WASM FS 並加入 m_sFontDir 參數
+ */
+async function convertBinToFormat(
   x2t: EmscriptenX2tModule,
   docyData: string,
-): Uint8Array {
+  targetExt: string = 'docx',
+): Promise<Uint8Array> {
+  const needsFonts = FONT_REQUIRED_FORMATS.has(targetExt);
+
+  // PDF 等格式需要先載入字型
+  if (needsFonts) {
+    await loadFontsToWasmFS(x2t);
+  }
+
   const inputPath = '/working/_export.bin';
-  const outputPath = '/working/_export.docx';
+  const outputPath = `/working/_export.${targetExt}`;
 
   // 將 DOCY 資料寫入虛擬檔案系統
   x2t.FS.writeFile(inputPath, docyData);
 
+  // 根據是否需要字型，組合不同的轉換參數
+  const fontDirXml = needsFonts ? `\n  <m_sFontDir>${X2T_FONT_DIR}</m_sFontDir>` : '';
   const params = `<?xml version="1.0" encoding="utf-8"?>
 <TaskQueueDataConvert xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <m_sFileFrom>${inputPath}</m_sFileFrom>
   <m_sThemeDir>/working/themes</m_sThemeDir>
   <m_sFileTo>${outputPath}</m_sFileTo>
-  <m_bIsNoBase64>false</m_bIsNoBase64>
+  <m_bIsNoBase64>false</m_bIsNoBase64>${fontDirXml}
 </TaskQueueDataConvert>`;
 
   x2t.FS.writeFile('/working/params_export.xml', params);
   const result = x2t.ccall('main1', 'number', ['string'], ['/working/params_export.xml']);
   if (result !== 0) {
-    throw new Error(`DOCY→DOCX 轉換失敗（錯誤碼：${result}）`);
+    throw new Error(`DOCY→${targetExt.toUpperCase()} 轉換失敗（錯誤碼：${result}）`);
   }
 
   // 讀取為二進位
-  const docxBytes = x2t.FS.readFile(outputPath);
-  return docxBytes;
+  const outputBytes = x2t.FS.readFile(outputPath);
+  return outputBytes;
 }
 
 // ── SDK 載入 ─────────────────────────────────────────────
@@ -346,7 +464,7 @@ export class X2tService {
       fileName,
       isNew = false,
       readOnly = false,
-      lang = 'zh',
+      lang = 'zh-TW',
       containerId = SDK_CONFIG.defaultContainerId,
     } = options;
 
@@ -500,24 +618,30 @@ export class X2tService {
                 const docyString = saveChunks.join('');
                 saveChunks = [];
 
-                const outputName = option?.title || fileName || '未命名文件.docx';
-                console.log('[OnlyOffice] onSave: DOCY 資料長度:', docyString.length,
+                // 從 SDK option 推斷目標格式（DOCX / PDF / …）
+                const targetExt = resolveTargetExt(option, fileName || '未命名文件.docx');
+                const outputName = option?.title || fileName || `未命名文件.${targetExt}`;
+                // 確保輸出檔名的副檔名與目標格式一致
+                const finalName = ensureExtension(outputName, targetExt);
+
+                console.log('[OnlyOffice] onSave: 目標格式:', targetExt,
+                  'DOCY 資料長度:', docyString.length,
                   '前 40 字元:', docyString.substring(0, 40));
 
-                // 使用 x2t WASM 將 DOCY 轉換為 DOCX
-                initX2t().then(x2t => {
-                  const docxBytes = convertBinToDocx(x2t, docyString);
-                  console.log('[OnlyOffice] DOCY→DOCX 轉換成功，大小:', docxBytes.byteLength);
+                // 使用 x2t WASM 將 DOCY 轉換為目標格式
+                initX2t().then(async x2t => {
+                  const outputBytes = await convertBinToFormat(x2t, docyString, targetExt);
+                  console.log(`[OnlyOffice] DOCY→${targetExt.toUpperCase()} 轉換成功，大小:`, outputBytes.byteLength);
 
                   // 觸發下載
                   this.eventbus.emit(ONLYOFFICE_EVENT_KEYS.SAVE_DOCUMENT, {
-                    fileName: outputName,
-                    fileType: getFileExtension(outputName),
-                    binData: docxBytes,
+                    fileName: finalName,
+                    fileType: targetExt,
+                    binData: outputBytes,
                     instanceId: containerId,
                   });
                 }).catch(err => {
-                  console.error('[OnlyOffice] DOCY→DOCX 轉換失敗:', err);
+                  console.error(`[OnlyOffice] DOCY→${targetExt.toUpperCase()} 轉換失敗:`, err);
                 });
 
                 // 回傳 asc_onSaveCallback 完成 SDK 儲存流程

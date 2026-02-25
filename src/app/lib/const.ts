@@ -36,6 +36,10 @@ export const FILE_MIME_MAP: Record<string, string> = {
   rtf: 'application/rtf',
   txt: 'text/plain',
   html: 'text/html',
+  pdf: 'application/pdf',
+  epub: 'application/epub+zip',
+  dotx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.template',
+  ott: 'application/vnd.oasis.opendocument.text-template',
 };
 
 /**
@@ -53,7 +57,7 @@ export const UNSUPPORTED_EXTENSIONS_MSG: Record<string, string> = {
 /**
  * 預設語言設定（繁體中文）
  */
-export const DEFAULT_LANG = 'zh';
+export const DEFAULT_LANG = 'zh-TW';
 
 /**
  * OnlyOffice SDK 路徑
