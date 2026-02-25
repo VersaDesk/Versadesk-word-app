@@ -79,6 +79,11 @@ export class WordEditorComponent implements OnInit, OnDestroy {
     if (data.loading) {
       this.appState.set('loading');
       this.loadingMessage.set(data.message || '載入中...');
+    } else {
+      // loading: false 但 appState 仍為 loading 時（如 onError），清除載入狀態
+      if (this.appState() === 'loading') {
+        this.loadingMessage.set('');
+      }
     }
   };
 
