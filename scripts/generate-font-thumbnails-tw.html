@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>字型縮圖產生器 - 繁體中文 (fonts_thumbnail_ea)</title>
+<style>
+  body { font-family: "Microsoft JhengHei", sans-serif; margin: 20px; background: #f5f5f5; }
+  h1 { font-size: 20px; }
+  .info { margin: 10px 0; padding: 10px; background: #e8f4fd; border-radius: 4px; font-size: 14px; }
+  #preview { margin: 20px 0; max-height: 600px; overflow-y: auto; border: 1px solid #ccc; background: #fff; }
+  #preview canvas { display: block; border-bottom: 1px solid #eee; }
+  button { padding: 10px 24px; font-size: 16px; margin: 5px; cursor: pointer; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  #status { margin: 10px 0; padding: 8px; font-size: 14px; }
+  .warn { color: #c00; }
+  .ok { color: #080; }
+  table { border-collapse: collapse; font-size: 12px; margin: 10px 0; }
+  td, th { border: 1px solid #ccc; padding: 3px 8px; }
+  th { background: #eee; }
+</style>
+</head>
+<body>
+<h1>📝 fonts_thumbnail_ea@1.5x.png.bin 繁體中文產生器</h1>
+
+<div class="info">
+  此工具會產生繁體中文版的字型縮圖二進位檔案。<br>
+  每個字型名稱會以該字型本身渲染在 450×42 的 Canvas 上，然後 RLE 壓縮成 OnlyOffice 的 .bin 格式。<br>
+  <strong>注意：</strong>你的電腦必須安裝對應的字型（如等線、微軟雅黑、宋體等），縮圖才會正確顯示。
+</div>
+
+<div>
+  <button id="btnGenerate" onclick="generate()">🔄 產生縮圖</button>
+  <button id="btnDownload" onclick="downloadBin()" disabled>💾 下載 .bin 檔案</button>
+  <button id="btnPreview" onclick="togglePreview()" disabled>👁 預覽所有縮圖</button>
+</div>
+
+<div id="status"></div>
+<div id="preview" style="display:none;"></div>
+
+<script>
+// =====================================================
+// 219 fonts in __fonts_infos order (sprite row index)
+// =====================================================
+const FONTS_INFOS = [
+  'Agency FB',
+  'Algerian',
+  'Arial',
+  'Arial Black',
+  'Arial Narrow',
+  'Arial Rounded MT Bold',
+  'Bahnschrift',
+  'Baskerville Old Face',
+  'Bauhaus 93',
+  'Bell MT',
+  'Berlin Sans FB',
+  'Berlin Sans FB Demi',
+  'Bernard MT Condensed',
+  'Blackadder ITC',
+  'Bodoni MT',
+  'Bodoni MT Black',
+  'Bodoni MT Condensed',
+  'Bodoni MT Poster Compressed',
+  'Book Antiqua',
+  'Bookman Old Style',
+  'Bookshelf Symbol 7',
+  'Bradley Hand ITC',
+  'Britannic Bold',
+  'Broadway',
+  'Brush Script MT',
+  'Calibri',
+  'Calibri Light',
+  'Californian FB',
+  'Calisto MT',
+  'Cambria',
+  'Cambria Math',
+  'Candara',
+  'Candara Light',
+  'Cascadia Code',
+  'Cascadia Mono',
+  'Castellar',
+  'Centaur',
+  'Century',
+  'Century Gothic',
+  'Century Schoolbook',
+  'Chiller',
+  'cmb10',
+  'cmex10',
+  'cmmi10',
+  'cmr10',
+  'cmss10',
+  'cmsy10',
+  'cmtt10',
+  'Colonna MT',
+  'Comic Sans MS',
+  'Consolas',
+  'Constantia',
+  'Cooper Black',
+  'Copperplate Gothic Bold',
+  'Copperplate Gothic Light',
+  'Corbel',
+  'Corbel Light',
+  'Courier New',
+  'Curlz MT',
+  'DengXian',
+  'DengXian Light',
+  'Dubai',
+  'Dubai Light',
+  'Dubai Medium',
+  'Ebrima',
+  'Edwardian Script ITC',
+  'Elephant',
+  'Engravers MT',
+  'Eras Bold ITC',
+  'Eras Demi ITC',
+  'Eras Light ITC',
+  'Eras Medium ITC',
+  'FangSong',
+  'Felix Titling',
+  'Footlight MT Light',
+  'Forte',
+  'Franklin Gothic Book',
+  'Freestyle Script',
+  'French Script MT',
+  'FZShuTi',
+  'FZYaoTi',
+  'Gabriola',
+  'Gadugi',
+  'Garamond',
+  'Georgia',
+  'Gigi',
+  'Gill Sans MT',
+  'Gill Sans MT Condensed',
+  'Gill Sans MT Ext Condensed Bold',
+  'Gill Sans Ultra Bold',
+  'Gill Sans Ultra Bold Condensed',
+  'Gloucester MT Extra Condensed',
+  'Goudy Old Style',
+  'Goudy Stout',
+  'Haettenschweiler',
+  'Harlow Solid Italic',
+  'Harrington',
+  'High Tower Text',
+  'HoloLens MDL2 Assets',
+  'Impact',
+  'Imprint MT Shadow',
+  'Informal Roman',
+  'Ink Free',
+  'Javanese Text',
+  'Jokerman',
+  'Juice ITC',
+  'KaiTi',
+  'Kristen ITC',
+  'Kunstler Script',
+  'Leelawadee UI',
+  'Leelawadee UI Semilight',
+  'LiSu',
+  'Lucida Bright',
+  'Lucida Calligraphy',
+  'Lucida Console',
+  'Lucida Fax',
+  'Lucida Handwriting',
+  'Lucida Sans',
+  'Lucida Sans Typewriter',
+  'Lucida Sans Unicode',
+  'Magneto',
+  'Maiandra GD',
+  'Matura MT Script Capitals',
+  'Microsoft Himalaya',
+  'Microsoft New Tai Lue',
+  'Microsoft PhagsPa',
+  'Microsoft Sans Serif',
+  'Microsoft Tai Le',
+  'Microsoft YaHei',
+  'Microsoft YaHei Light',
+  'Microsoft YaHei UI',
+  'Microsoft YaHei UI Light',
+  'Microsoft Yi Baiti',
+  'Mistral',
+  'Modern No. 20',
+  'Mongolian Baiti',
+  'Monotype Corsiva',
+  'MS Gothic',
+  'MS Outlook',
+  'MS PGothic',
+  'MS Reference Sans Serif',
+  'MS Reference Specialty',
+  'MS UI Gothic',
+  'MT Extra',
+  'MV Boli',
+  'Myanmar Text',
+  'Niagara Engraved',
+  'Niagara Solid',
+  'Nirmala UI',
+  'Nirmala UI Semilight',
+  'NSimSun',
+  'OCR A Extended',
+  'Old English Text MT',
+  'Onyx',
+  'Palace Script MT',
+  'Palatino Linotype',
+  'Papyrus',
+  'Parchment',
+  'Perpetua',
+  'Perpetua Titling MT',
+  'Playbill',
+  'Poor Richard',
+  'Pristina',
+  'Rage Italic',
+  'Ravie',
+  'Rockwell',
+  'Rockwell Condensed',
+  'Rockwell Extra Bold',
+  'Sans Serif Collection',
+  'Script MT Bold',
+  'Segoe Fluent Icons',
+  'Segoe MDL2 Assets',
+  'Segoe Print',
+  'Segoe Script',
+  'Segoe UI',
+  'Segoe UI Black',
+  'Segoe UI Emoji',
+  'Segoe UI Historic',
+  'Segoe UI Light',
+  'Segoe UI Semibold',
+  'Segoe UI Semilight',
+  'Segoe UI Symbol',
+  'Segoe UI Variable',
+  'Showcard Gothic',
+  'SimHei',
+  'SimSun',
+  'SimSun-ExtB',
+  'Sitka Text',
+  'Snap ITC',
+  'STCaiyun',
+  'Stencil',
+  'STFangsong',
+  'STHupo',
+  'STKaiti',
+  'STLiti',
+  'STSong',
+  'STXihei',
+  'STXingkai',
+  'STXinwei',
+  'STZhongsong',
+  'Sylfaen',
+  'Symbol',
+  'Tahoma',
+  'Tempus Sans ITC',
+  'Times New Roman',
+  'Trebuchet MS',
+  'Tw Cen MT',
+  'Tw Cen MT Condensed',
+  'Tw Cen MT Condensed Extra Bold',
+  'Verdana',
+  'Viner Hand ITC',
+  'Vivaldi',
+  'Vladimir Script',
+  'Webdings',
+  'Wide Latin',
+  'Wingdings',
+  'Wingdings 2',
+  'Wingdings 3',
+  'YouYuan',
+];
+
+// =====================================================
+// English → Simplified Chinese (Ddb mapping from SDK)
+// =====================================================
+const Ddb = {
+  'DengXian':             '\u7b49\u7ebf',         // 等线
+  'DengXian Light':       '\u7b49\u7ebf Light',   // 等线 Light
+  'Microsoft YaHei':      '\u5fae\u8f6f\u96c5\u9ed1',     // 微软雅黑
+  'Microsoft YaHei Light':'\u5fae\u8f6f\u96c5\u9ed1 Light',// 微软雅黑 Light
+  'Microsoft YaHei UI':   '\u5fae\u8f6f\u96c5\u9ed1 UI',
+  'Microsoft YaHei UI Light': '\u5fae\u8f6f\u96c5\u9ed1 UI Light',
+  'SimSun':               '\u5b8b\u4f53',         // 宋体
+  'NSimSun':              '\u65b0\u5b8b\u4f53',   // 新宋体
+  'SimSun-ExtB':          '\u5b8b\u4f53-ExtB',    // 宋体-ExtB
+  'SimHei':               '\u9ed1\u4f53',         // 黑体
+  'FangSong':             '\u4eff\u5b8b',         // 仿宋
+  'KaiTi':                '\u6977\u4f53',         // 楷体
+  'LiSu':                 '\u96b6\u4e66',         // 隶书
+  'YouYuan':              '\u5e7c\u5706',         // 幼圆
+  'FZShuTi':              '\u65b9\u6b63\u8212\u4f53',     // 方正舒体
+  'FZYaoTi':              '\u65b9\u6b63\u59da\u4f53',     // 方正姚体
+  'STCaiyun':             '\u534e\u6587\u5f69\u4e91',     // 华文彩云
+  'STFangsong':           '\u534e\u6587\u4eff\u5b8b',     // 华文仿宋
+  'STHupo':               '\u534e\u6587\u7425\u73c0',     // 华文琥珀
+  'STKaiti':              '\u534e\u6587\u6977\u4f53',     // 华文楷体
+  'STLiti':               '\u534e\u6587\u96b6\u4e66',     // 华文隶书
+  'STSong':               '\u534e\u6587\u5b8b\u4f53',     // 华文宋体
+  'STXihei':              '\u534e\u6587\u7ec6\u9ed1',     // 华文细黑
+  'STXingkai':            '\u534e\u6587\u884c\u6977',     // 华文行楷
+  'STXinwei':             '\u534e\u6587\u65b0\u9b4f',     // 华文新魏
+  'STZhongsong':          '\u534e\u6587\u4e2d\u5b8b',     // 华文中宋
+};
+
+// =====================================================
+// Simplified Chinese → Traditional Chinese mapping
+// =====================================================
+const sc2tc = {
+  '\u7b49\u7ebf':               '\u7b49\u7dda',              // 等线 → 等線
+  '\u7b49\u7ebf Light':         '\u7b49\u7dda Light',        // 等线 Light → 等線 Light
+  '\u5fae\u8f6f\u96c5\u9ed1':   '\u5fae\u8edf\u96c5\u9ed1', // 微软雅黑 → 微軟雅黑
+  '\u5fae\u8f6f\u96c5\u9ed1 Light': '\u5fae\u8edf\u96c5\u9ed1 Light',
+  '\u5fae\u8f6f\u96c5\u9ed1 UI': '\u5fae\u8edf\u96c5\u9ed1 UI',
+  '\u5fae\u8f6f\u96c5\u9ed1 UI Light': '\u5fae\u8edf\u96c5\u9ed1 UI Light',
+  '\u5b8b\u4f53':               '\u5b8b\u9ad4',              // 宋体 → 宋體
+  '\u65b0\u5b8b\u4f53':         '\u65b0\u5b8b\u9ad4',        // 新宋体 → 新宋體
+  '\u5b8b\u4f53-ExtB':          '\u5b8b\u9ad4-ExtB',         // 宋体-ExtB → 宋體-ExtB
+  '\u9ed1\u4f53':               '\u9ed1\u9ad4',              // 黑体 → 黑體
+  '\u4eff\u5b8b':               '\u4eff\u5b8b',              // 仿宋 → 仿宋 (same)
+  '\u6977\u4f53':               '\u6977\u9ad4',              // 楷体 → 楷體
+  '\u96b6\u4e66':               '\u96b8\u66f8',              // 隶书 → 隸書
+  '\u5e7c\u5706':               '\u5e7c\u5713',              // 幼圆 → 幼圓
+  '\u65b9\u6b63\u8212\u4f53':   '\u65b9\u6b63\u8212\u9ad4',  // 方正舒体 → 方正舒體
+  '\u65b9\u6b63\u59da\u4f53':   '\u65b9\u6b63\u59da\u9ad4',  // 方正姚体 → 方正姚體
+  '\u534e\u6587\u5f69\u4e91':   '\u83ef\u6587\u5f69\u96f2',  // 华文彩云 → 華文彩雲
+  '\u534e\u6587\u4eff\u5b8b':   '\u83ef\u6587\u4eff\u5b8b',  // 华文仿宋 → 華文仿宋
+  '\u534e\u6587\u7425\u73c0':   '\u83ef\u6587\u7425\u73c0',  // 华文琥珀 → 華文琥珀
+  '\u534e\u6587\u6977\u4f53':   '\u83ef\u6587\u6977\u9ad4',  // 华文楷体 → 華文楷體
+  '\u534e\u6587\u96b6\u4e66':   '\u83ef\u6587\u96b8\u66f8',  // 华文隶书 → 華文隸書
+  '\u534e\u6587\u5b8b\u4f53':   '\u83ef\u6587\u5b8b\u9ad4',  // 华文宋体 → 華文宋體
+  '\u534e\u6587\u7ec6\u9ed1':   '\u83ef\u6587\u7d30\u9ed1',  // 华文细黑 → 華文細黑
+  '\u534e\u6587\u884c\u6977':   '\u83ef\u6587\u884c\u6977',  // 华文行楷 → 華文行楷
+  '\u534e\u6587\u65b0\u9b4f':   '\u83ef\u6587\u65b0\u9b4f',  // 华文新魏 → 華文新魏
+  '\u534e\u6587\u4e2d\u5b8b':   '\u83ef\u6587\u4e2d\u5b8b',  // 华文中宋 → 華文中宋
+};
+
+// =====================================================
+// Sprite parameters
+// =====================================================
+const SPRITE_WIDTH = 450;
+const SPRITE_HEIGHT_ONE = 42;
+const FONT_COUNT = FONTS_INFOS.length; // 219
+
+// Font rendering parameters
+const FONT_SIZE = 26;       // px at 1.5x scale
+const TEXT_LEFT = 10;        // left padding
+const TEXT_BASELINE_Y = 30;  // baseline Y position (vertically centered in 42px)
+
+// =====================================================
+// Get display name for a font (Traditional Chinese if CJK)
+// =====================================================
+function getDisplayName(englishName) {
+  const simplified = Ddb[englishName];
+  if (simplified) {
+    const traditional = sc2tc[simplified];
+    return traditional || simplified;
+  }
+  return englishName;
+}
+
+// =====================================================
+// Get the CSS font-family to use for rendering
+// For CJK fonts, use the English name (which maps to the actual system font)
+// =====================================================
+function getFontFamily(englishName) {
+  // Use the English font name for CSS, browsers map it to the actual font
+  return '"' + englishName + '", "Microsoft JhengHei", sans-serif';
+}
+
+// =====================================================
+// Render a single font thumbnail
+// =====================================================
+function renderThumbnail(englishName, canvas, ctx) {
+  const displayName = getDisplayName(englishName);
+  const fontFamily = getFontFamily(englishName);
+
+  // Clear canvas (transparent)
+  ctx.clearRect(0, 0, SPRITE_WIDTH, SPRITE_HEIGHT_ONE);
+
+  // Set font and draw text
+  ctx.fillStyle = '#000000';
+  ctx.textBaseline = 'alphabetic';
+  ctx.font = FONT_SIZE + 'px ' + fontFamily;
+  ctx.fillText(displayName, TEXT_LEFT, TEXT_BASELINE_Y);
+
+  return displayName;
+}
+
+// =====================================================
+// Extract alpha channel from canvas ImageData → byte array
+// =====================================================
+function extractAlphaChannel(ctx) {
+  const imageData = ctx.getImageData(0, 0, SPRITE_WIDTH, SPRITE_HEIGHT_ONE);
+  const data = imageData.data;
+  const totalPixels = SPRITE_WIDTH * SPRITE_HEIGHT_ONE;
+  const alpha = new Uint8Array(totalPixels);
+  for (let i = 0; i < totalPixels; i++) {
+    alpha[i] = data[i * 4 + 3]; // Alpha channel
+  }
+  return alpha;
+}
+
+// =====================================================
+// RLE encode all font tiles into the binary format
+// Format: header (12 bytes) + RLE body
+// Header: width(4B BE) + heightOne(4B BE) + count(4B BE)
+// Body: byte=0,N → N transparent pixels; byte=V(V>0) → 1 pixel with A=V
+// =====================================================
+function rleEncode(allAlphas) {
+  // Estimate output size (worst case: every pixel is non-zero = 1 byte per pixel)
+  const totalPixels = SPRITE_WIDTH * SPRITE_HEIGHT_ONE * FONT_COUNT;
+  const buffer = new Uint8Array(12 + totalPixels * 2); // generous buffer
+  let pos = 0;
+
+  // Write header (Big Endian uint32)
+  function writeUint32BE(val) {
+    buffer[pos++] = (val >> 24) & 0xFF;
+    buffer[pos++] = (val >> 16) & 0xFF;
+    buffer[pos++] = (val >> 8) & 0xFF;
+    buffer[pos++] = val & 0xFF;
+  }
+
+  writeUint32BE(SPRITE_WIDTH);     // width = 450
+  writeUint32BE(SPRITE_HEIGHT_ONE); // heightOne = 42
+  writeUint32BE(FONT_COUNT);        // count = 219
+
+  // Encode all tiles sequentially
+  for (let fontIdx = 0; fontIdx < FONT_COUNT; fontIdx++) {
+    const alpha = allAlphas[fontIdx];
+    let i = 0;
+    while (i < alpha.length) {
+      if (alpha[i] === 0) {
+        // Count consecutive transparent pixels (max 255 per run)
+        let count = 0;
+        while (i < alpha.length && alpha[i] === 0 && count < 255) {
+          count++;
+          i++;
+        }
+        buffer[pos++] = 0;     // marker: transparent run
+        buffer[pos++] = count; // count
+      } else {
+        buffer[pos++] = alpha[i]; // non-zero alpha byte
+        i++;
+      }
+    }
+  }
+
+  // Return trimmed result
+  return buffer.slice(0, pos);
+}
+
+// =====================================================
+// Generated binary data (stored after generation)
+// =====================================================
+let generatedBinary = null;
+
+// =====================================================
+// Main generate function
+// =====================================================
+async function generate() {
+  const btnGen = document.getElementById('btnGenerate');
+  const btnDl = document.getElementById('btnDownload');
+  const btnPrev = document.getElementById('btnPreview');
+  const statusEl = document.getElementById('status');
+
+  btnGen.disabled = true;
+  btnDl.disabled = true;
+  btnPrev.disabled = true;
+  statusEl.innerHTML = '⏳ 正在產生縮圖...';
+
+  // Create offscreen canvas
+  const canvas = document.createElement('canvas');
+  canvas.width = SPRITE_WIDTH;
+  canvas.height = SPRITE_HEIGHT_ONE;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+  const allAlphas = [];
+  const results = [];
+  const missingFonts = [];
+
+  // Small delay to let UI update
+  await new Promise(r => setTimeout(r, 50));
+
+  for (let i = 0; i < FONT_COUNT; i++) {
+    const englishName = FONTS_INFOS[i];
+    const displayName = renderThumbnail(englishName, canvas, ctx);
+    const alpha = extractAlphaChannel(ctx);
+    allAlphas.push(alpha);
+
+    // Check if font is available by measuring text width
+    // (heuristic: if the font falls back to default, the metrics might differ)
+    const testCtx = canvas.getContext('2d');
+    testCtx.font = FONT_SIZE + 'px "' + englishName + '"';
+    const w1 = testCtx.measureText(displayName).width;
+    testCtx.font = FONT_SIZE + 'px "____NONEXISTENT_FONT____"';
+    const w2 = testCtx.measureText(displayName).width;
+    const fontAvailable = Math.abs(w1 - w2) > 0.5;
+
+    results.push({
+      index: i,
+      english: englishName,
+      display: displayName,
+      available: fontAvailable,
+      hasPixels: alpha.some(v => v > 0),
+    });
+
+    if (!fontAvailable) missingFonts.push(englishName);
+
+    // Update status periodically
+    if (i % 20 === 0) {
+      statusEl.innerHTML = `⏳ 正在產生縮圖... ${i + 1}/${FONT_COUNT}`;
+      await new Promise(r => setTimeout(r, 0));
+    }
+  }
+
+  statusEl.innerHTML = '⏳ 正在進行 RLE 壓縮...';
+  await new Promise(r => setTimeout(r, 50));
+
+  // RLE encode
+  generatedBinary = rleEncode(allAlphas);
+
+  // Show results
+  let html = `<span class="ok">✅ 完成！</span> 產生了 ${FONT_COUNT} 個縮圖，二進位檔案大小：${generatedBinary.length.toLocaleString()} bytes<br>`;
+  if (missingFonts.length > 0) {
+    html += `<span class="warn">⚠️ ${missingFonts.length} 個字型可能未安裝（使用了備用字型渲染）：</span><br>`;
+    html += `<small>${missingFonts.join(', ')}</small><br>`;
+  }
+  statusEl.innerHTML = html;
+
+  // Store results for preview
+  window._genResults = results;
+  window._allAlphas = allAlphas;
+
+  btnGen.disabled = false;
+  btnDl.disabled = false;
+  btnPrev.disabled = false;
+}
+
+// =====================================================
+// Download the generated binary
+// =====================================================
+function downloadBin() {
+  if (!generatedBinary) return;
+  const blob = new Blob([generatedBinary], { type: 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'fonts_thumbnail_ea@1.5x.png.bin';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// =====================================================
+// Preview all thumbnails
+// =====================================================
+function togglePreview() {
+  const previewEl = document.getElementById('preview');
+  if (previewEl.style.display === 'none') {
+    previewEl.style.display = 'block';
+    previewEl.innerHTML = '';
+
+    const canvas = document.createElement('canvas');
+    canvas.width = SPRITE_WIDTH;
+    canvas.height = SPRITE_HEIGHT_ONE;
+    const ctx = canvas.getContext('2d');
+
+    for (let i = 0; i < FONT_COUNT; i++) {
+      const result = window._genResults[i];
+
+      // Create a preview row
+      const row = document.createElement('div');
+      row.style.display = 'flex';
+      row.style.alignItems = 'center';
+      row.style.borderBottom = '1px solid #eee';
+      row.style.padding = '2px 4px';
+      row.style.fontSize = '11px';
+
+      // Index label
+      const label = document.createElement('span');
+      label.style.width = '40px';
+      label.style.flexShrink = '0';
+      label.style.color = '#999';
+      label.textContent = '#' + i;
+      row.appendChild(label);
+
+      // Rendered canvas preview
+      const prevCanvas = document.createElement('canvas');
+      prevCanvas.width = SPRITE_WIDTH;
+      prevCanvas.height = SPRITE_HEIGHT_ONE;
+      prevCanvas.style.width = '300px';
+      prevCanvas.style.height = '28px';
+      prevCanvas.style.border = '1px solid #ddd';
+      prevCanvas.style.background = '#fff';
+      const prevCtx = prevCanvas.getContext('2d');
+
+      // Reconstruct from alpha data
+      const alpha = window._allAlphas[i];
+      const imageData = prevCtx.createImageData(SPRITE_WIDTH, SPRITE_HEIGHT_ONE);
+      for (let p = 0; p < alpha.length; p++) {
+        const v = alpha[p];
+        imageData.data[p * 4]     = 255 - v; // R
+        imageData.data[p * 4 + 1] = 255 - v; // G
+        imageData.data[p * 4 + 2] = 255 - v; // B
+        imageData.data[p * 4 + 3] = v;       // A
+      }
+      prevCtx.putImageData(imageData, 0, 0);
+      row.appendChild(prevCanvas);
+
+      // Font name info
+      const info = document.createElement('span');
+      info.style.marginLeft = '8px';
+      info.style.flexShrink = '0';
+      const availStr = result.available ? '✅' : '⚠️';
+      info.innerHTML = `${availStr} <b>${result.english}</b> → ${result.display}`;
+      row.appendChild(info);
+
+      previewEl.appendChild(row);
+    }
+  } else {
+    previewEl.style.display = 'none';
+  }
+}
+
+// =====================================================
+// Also provide a verification tool: decode existing .bin
+// =====================================================
+function verifyExisting() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.bin';
+  input.onchange = async function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const buffer = await file.arrayBuffer();
+    const data = new Uint8Array(buffer);
+
+    // Read header
+    const width = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
+    const heightOne = (data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7];
+    const count = (data[8] << 24) | (data[9] << 16) | (data[10] << 8) | data[11];
+
+    alert(`Binary info:\nWidth: ${width}\nHeightOne: ${heightOne}\nCount: ${count}\nFile size: ${data.length} bytes`);
+  };
+  input.click();
+}
+</script>
+</body>
+</html>

@@ -42608,7 +42608,7 @@ var c_oHyperlinkType = { InternalLink: 0, WebLink: 1 },
                   ratio: 1.5,
                   path:
                     '../../../../sdkjs/common/Images/fonts_thumbnail' +
-                    (/^(zh|ja|ko)$/i.test(Common.Locale.getCurrentLanguage()) ? '_ea' : '') +
+                    (/^(zh|ja|ko)(\b|-|$)/i.test(Common.Locale.getCurrentLanguage()) ? '_ea' : '') +
                     '@1.5x.png',
                   width: 450,
                   height: 1.5 * m,
@@ -63012,15 +63012,35 @@ var c_oHyperlinkType = { InternalLink: 0, WebLink: 1 },
     function e(t) {
       Common.NotificationCenter.trigger('fonts:change', t);
     }
+    /* ── 簡體→繁體（台灣）字型名稱映射 ── */
+    var __sc2tc_font_app = {
+      '\u7b49\u7ebf':'\u7b49\u7dda', '\u7b49\u7ebf Light':'\u7b49\u7dda Light',
+      '\u5fae\u8f6f\u96c5\u9ed1':'\u5fae\u8edf\u96c5\u9ed1', '\u5fae\u8f6f\u96c5\u9ed1 Light':'\u5fae\u8edf\u96c5\u9ed1 Light',
+      '\u5b8b\u4f53':'\u5b8b\u9ad4', '\u9ed1\u4f53':'\u9ed1\u9ad4',
+      '\u4eff\u5b8b':'\u4eff\u5b8b', '\u6977\u4f53':'\u6977\u9ad4',
+      '\u96b6\u4e66':'\u96b8\u66f8', '\u65b0\u5b8b\u4f53':'\u65b0\u5b8b\u9ad4',
+      '\u5e7c\u5706':'\u5e7c\u5713', '\u65b9\u6b63\u8212\u4f53':'\u65b9\u6b63\u8212\u9ad4',
+      '\u65b9\u6b63\u59da\u4f53':'\u65b9\u6b63\u59da\u9ad4',
+      '\u534e\u6587\u5f69\u4e91':'\u83ef\u6587\u5f69\u96f2', '\u534e\u6587\u4eff\u5b8b':'\u83ef\u6587\u4eff\u5b8b',
+      '\u534e\u6587\u7425\u73c0':'\u83ef\u6587\u7425\u73c0', '\u534e\u6587\u6977\u4f53':'\u83ef\u6587\u6977\u9ad4',
+      '\u534e\u6587\u96b6\u4e66':'\u83ef\u6587\u96b8\u66f8', '\u534e\u6587\u5b8b\u4f53':'\u83ef\u6587\u5b8b\u9ad4',
+      '\u534e\u6587\u7ec6\u9ed1':'\u83ef\u6587\u7d30\u9ed1', '\u534e\u6587\u884c\u6977':'\u83ef\u6587\u884c\u6977',
+      '\u534e\u6587\u65b0\u9b4f':'\u83ef\u6587\u65b0\u9b4f', '\u534e\u6587\u4e2d\u5b8b':'\u83ef\u6587\u4e2d\u5b8b'
+    };
     function i(t, e) {
       var i = [];
       _.each(t, function (t) {
-        var e = t.asc_getFontId();
+        var fontId   = _.isFunction(t.asc_getFontId)        ? t.asc_getFontId()        : null;
+        var fontName = _.isFunction(t.asc_getFontName)      ? t.asc_getFontName()
+                     : _.isFunction(t.get_Name)             ? t.get_Name()             : '';
+        var fontImg  = _.isFunction(t.asc_getFontThumbnail) ? t.asc_getFontThumbnail() : 0;
+        var fontType = _.isFunction(t.asc_getFontType)      ? t.asc_getFontType()      : 1;
+        fontName = __sc2tc_font_app[fontName] || fontName;
         i.push({
-          id: _.isEmpty(e) ? Common.UI.getId() : e,
-          name: t.asc_getFontName(),
-          imgidx: t.asc_getFontThumbnail(),
-          type: t.asc_getFontType(),
+          id:     _.isEmpty(fontId) ? Common.UI.getId() : fontId,
+          name:   fontName,
+          imgidx: fontImg,
+          type:   fontType,
         });
       });
       const n = window.__fonts_sort;
