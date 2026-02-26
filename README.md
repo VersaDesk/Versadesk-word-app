@@ -1,29 +1,31 @@
-# OnlyOffice Word 編輯器（Angular v20）
+# Versadesk OnlyOffice Word
 
-基於 [mvp-onlyoffice](https://github.com/electroluxcode/mvp-onlyoffice) 專案，抽取 Word 編輯器功能並以 **Angular v20+** 重新改寫，介面語言改為**繁體中文**。
+基於 [mvp-onlyoffice](https://github.com/electroluxcode/mvp-onlyoffice) 專案，抽取 Word 編輯器功能並以 **Angular v20+** 重新改寫。介面語言改為**台灣繁體中文（zh-TW）**，文件處理完全在瀏覽器端完成，資料不離開本機。
 
 ## 功能特點
 
-- 🔒 **資料安全**：文件處理完全在瀏覽器內完成，資料不離開本機
-- 📄 **格式支援**：支援 DOCX、DOC、ODT、RTF、TXT 格式
-- ✏️ **完整編輯**：整合 OnlyOffice SDK，提供完整的 Word 文件編輯功能
-- 💾 **匯出下載**：一鍵匯出並下載編輯後的文件
-- 👁️ **唯讀模式**：支援唯讀/編輯模式切換
-- ➕ **新建文件**：可建立空白 Word 文件
-- 🌏 **繁體中文**：介面完全中文化
-- ♿ **無障礙設計**：遵循 ARIA 標準
+- **資料安全** — 文件處理完全在瀏覽器內完成（WASM），資料不離開本機
+- **格式支援** — 支援 DOCX、ODT、RTF、TXT 格式的上傳與編輯
+- **完整編輯** — 整合 OnlyOffice SDK，提供 Word / Slide / Spreadsheet 三種編輯器
+- **匯出下載** — 透過 x2t WASM 將 DOCY 轉換為 DOCX/PDF 後下載
+- **唯讀模式** — 支援唯讀 / 編輯模式切換
+- **新建文件** — 可建立空白 Word 文件
+- **繁體中文** — 介面完全台灣繁體中文化（zh-TW locale），含字型下拉選單繁體縮圖
+- **無障礙設計** — 遵循 ARIA 標準
 
 ## 技術架構
 
-- **Angular v20+**：使用最新的 Angular 特性
+- **Angular v20+** — 使用最新的 Angular 特性
   - Standalone Components（無 NgModules）
   - Signals 狀態管理（`signal`、`computed`、`effect`）
   - 新版控制流語法（`@if`、`@for`）
   - `inject()` 依賴注入
   - `afterNextRender` 生命週期
   - `viewChild` 模板引用
-- **TypeScript 5.5+**：強型別定義
-- **SCSS**：模組化樣式
+- **TypeScript 5.8+** — 強型別定義
+- **SCSS** — 模組化樣式
+- **OnlyOffice SDK** — 離線文件編輯引擎
+- **x2t WASM** — 瀏覽器端格式轉換（DOCY → DOCX / PDF）
 
 ## 專案結構
 
@@ -46,6 +48,15 @@ src/
 ├── styles.scss                   # 全域樣式與 CSS 變數
 ├── index.html                    # 應用入口 HTML
 └── main.ts                       # Bootstrap 入口點
+
+public/
+├── web-apps/                     # OnlyOffice Web 應用資源（三個編輯器）
+├── sdkjs/                        # OnlyOffice SDK（含繁體中文字型縮圖）
+├── wasm/                         # x2t WebAssembly 轉換器
+└── fonts/                        # 開源字型
+
+scripts/
+└── generate-font-thumbnails-tw.html  # 繁體中文字型縮圖產生器
 ```
 
 ## 安裝與啟動
@@ -61,28 +72,17 @@ src/
 # 1. 安裝依賴
 npm install
 
-# 2. 部署 OnlyOffice 靜態資源（必要！）
-# 將原始 repo 的 public/ 目錄內容複製至本專案的 public/ 目錄
-# 所需資源：
-#   public/web-apps/    → OnlyOffice Web 應用資源
-#   public/sdkjs/       → OnlyOffice SDK
-#   public/wasm/        → WebAssembly 轉換器
-
-# 3. 啟動開發伺服器
+# 2. 啟動開發伺服器
 npm start
-# 瀏覽器開啟 http://localhost:3001
+# 瀏覽器開啟 http://localhost:4200
 ```
 
 ### 靜態資源說明
 
-本專案的編輯器功能需要 OnlyOffice 的靜態資源，請從原始 repo 取得：
+本專案的編輯器功能需要 OnlyOffice 的靜態資源（`public/` 目錄），來源為：
 
-```bash
-# 從原始 repo 複製靜態資源
-git clone https://github.com/electroluxcode/mvp-onlyoffice.git temp-repo
-cp -r temp-repo/public/* ./public/
-rm -rf temp-repo
-```
+- **web-apps / sdkjs** — 來自 [ranuts/document](https://github.com/ranuts/document)
+- **wasm / fonts** — OnlyOffice x2t 轉換引擎與開源字型
 
 ## 路由
 
@@ -141,7 +141,7 @@ await x2t.createEditorView({
   fileName: 'doc.docx',
   isNew: false,
   readOnly: false,
-  lang: 'zh',              // 繁體中文介面
+  lang: 'zh-tw',           // 台灣繁體中文介面
   containerId: 'my-editor'
 });
 
@@ -149,9 +149,19 @@ await x2t.createEditorView({
 await x2t.createEditorView({
   fileName: '未命名文件.docx',
   isNew: true,
-  lang: 'zh'
+  lang: 'zh-tw'
 });
 ```
+
+## 字型縮圖產生器
+
+若需重新產生繁體中文字型縮圖（`fonts_thumbnail_ea@1.5x.png.bin`），可使用內附工具：
+
+1. 用瀏覽器開啟 `scripts/generate-font-thumbnails-tw.html`
+2. 點擊「產生縮圖」，確認預覽無誤後下載 `.bin` 檔
+3. 覆蓋 `public/sdkjs/common/Images/fonts_thumbnail_ea@1.5x.png.bin`
+
+> 注意：電腦需安裝對應的中文字型（等線、微軟雅黑、宋體等），縮圖才能正確渲染。
 
 ## 與原始 Next.js 版本的對應關係
 
@@ -170,7 +180,7 @@ await x2t.createEditorView({
 
 建議使用最新版本的：
 - Google Chrome
-- Mozilla Firefox  
+- Mozilla Firefox
 - Microsoft Edge
 - Apple Safari
 
