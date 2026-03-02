@@ -187,3 +187,10 @@ await x2t.createEditorView({
 ## 授權
 
 AGPL-3.0（與原始專案相同）
+
+## 相對路徑部署
+
+本專案已改為以 `<base href>` 為基準解析 `public/` 靜態資源（包含 `web-apps`、`wasm`、`fonts`）。
+
+- 若部署在子路徑（例如 `/my-site/`），請在建置時設定對應 base href。
+- 只要 `base href` 正確，OnlyOffice SDK 與 x2t WASM 會自動使用該路徑載入資源，不再強依賴根目錄 `/`。

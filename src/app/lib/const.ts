@@ -60,11 +60,52 @@ export const UNSUPPORTED_EXTENSIONS_MSG: Record<string, string> = {
 export const DEFAULT_LANG = 'zh-TW';
 
 /**
+ * 將 public 目錄資源轉為可部署在子路徑的 URL。
+ */
+export function resolvePublicAssetUrl(path: string): string {
+  const normalizedPath = path.replace(/^\/+/, '');
+
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return `./${normalizedPath}`;
+  }
+
+  const toDirPath = (pathname: string): string => {
+    if (pathname.endsWith('/')) return pathname;
+    const idx = pathname.lastIndexOf('/');
+    return idx >= 0 ? pathname.slice(0, idx + 1) : '/';
+  };
+
+  const normalizeBasePath = (pathname: string): string =>
+    pathname.startsWith('/') ? pathname : `/${pathname}`;
+
+  const inferBaseFromLoadedScripts = (): string | null => {
+    const scriptWithBundle = Array.from(document.scripts).find((s) =>
+      /\/(?:main|polyfills|chunk)-[^/]+\.js(?:\?|$)/.test(s.src)
+    );
+    if (!scriptWithBundle?.src) return null;
+    const scriptPath = new URL(scriptWithBundle.src, window.location.href).pathname;
+    return normalizeBasePath(toDirPath(scriptPath));
+  };
+
+  const baseHref = (document.querySelector('base')?.getAttribute('href') || '').trim();
+  let basePath: string;
+
+  if (!baseHref || baseHref === '.' || baseHref === './') {
+    basePath = inferBaseFromLoadedScripts() || normalizeBasePath(toDirPath(window.location.pathname));
+  } else {
+    const baseUrl = new URL(baseHref, window.location.href);
+    basePath = normalizeBasePath(baseUrl.pathname.endsWith('/') ? baseUrl.pathname : `${baseUrl.pathname}/`);
+  }
+
+  return new URL(normalizedPath, `${window.location.origin}${basePath}`).toString();
+}
+
+/**
  * OnlyOffice SDK 路徑
  */
 export const SDK_CONFIG = {
   /** API 腳本路徑 */
-  apiScriptPath: '/web-apps/apps/api/documents/api.js',
+  apiScriptPath: 'web-apps/apps/api/documents/api.js',
   /** 預設容器 ID */
   defaultContainerId: 'onlyoffice-editor-container',
 };

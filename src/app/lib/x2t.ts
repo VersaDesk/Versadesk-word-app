@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { OnlyofficeEventbusService } from './eventbus';
-import { ONLYOFFICE_EVENT_KEYS, SDK_CONFIG } from './const';
+import { ONLYOFFICE_EVENT_KEYS, SDK_CONFIG, resolvePublicAssetUrl } from './const';
 import { EditorManagerFactory } from './editor-manager';
 import { g_sEmpty_bin } from './empty_bin';
 
@@ -195,7 +195,7 @@ async function putWasmToIDB(url: string, data: ArrayBuffer): Promise<void> {
 
 // ── x2t WASM 模組 ────────────────────────────────────────
 
-const X2T_SCRIPT_PATH = '/wasm/x2t/x2t.js';
+const X2T_SCRIPT_PATH = resolvePublicAssetUrl('wasm/x2t/x2t.js');
 const X2T_WORKING_DIRS = ['/working', '/working/media', '/working/fonts', '/working/themes'];
 const X2T_FONT_DIR = '/working/fonts';
 
@@ -228,7 +228,7 @@ function loadFontsToWasmFS(x2t: EmscriptenX2tModule): Promise<void> {
     console.log('[X2t] 開始載入 PDF 字型...');
     const results = await Promise.allSettled(
       PDF_FONT_FILES.map(async (name) => {
-        const url = `/fonts/${name}`;
+        const url = resolvePublicAssetUrl(`fonts/${name}`);
         try {
           const resp = await fetch(url);
           if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
@@ -432,7 +432,7 @@ function loadSdk(src: string): Promise<void> {
     const wait = (deadline = Date.now() + 20000) => {
       if (window.DocsAPI) { resolve(); return; }
       if (Date.now() > deadline) {
-        reject(new Error('OnlyOffice SDK 超時，請確認 /web-apps/ 已正確部署'));
+        reject(new Error('OnlyOffice SDK 超時，請確認 web-apps/ 已正確部署'));
         return;
       }
       setTimeout(() => wait(deadline), 200);
@@ -505,7 +505,7 @@ export class X2tService {
       this.eventbus.emit(ONLYOFFICE_EVENT_KEYS.LOADING_CHANGE, {
         loading: true, message: '正在載入編輯器...',
       });
-      await loadSdk(SDK_CONFIG.apiScriptPath);
+      await loadSdk(resolvePublicAssetUrl(SDK_CONFIG.apiScriptPath));
 
       // ── 3. 銷毀舊編輯器（必須先執行，destroyEditor 會重建容器 div）──
       const manager = this.managerFactory.create(containerId);

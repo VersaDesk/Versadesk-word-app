@@ -7,9 +7,14 @@
  */
 const CACHE = 'oo-docs-v1';
 
+function getDocPrefix() {
+  const scopePath = new URL(self.registration.scope).pathname.replace(/\/$/, '');
+  return `${scopePath}/sw-doc/`;
+}
+
 self.addEventListener('fetch', (event) => {
   const { pathname } = new URL(event.request.url);
-  if (!pathname.startsWith('/sw-doc/')) return;
+  if (!pathname.startsWith(getDocPrefix())) return;
 
   event.respondWith(
     caches.open(CACHE).then(cache =>
