@@ -10,7 +10,7 @@ import {
   effect,
   afterNextRender
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 import { X2tService, getFileExtension } from '../../lib/x2t';
 import { EditorManagerFactory } from '../../lib/editor-manager';
@@ -28,7 +28,7 @@ type AppState = 'idle' | 'loading' | 'ready' | 'error';
 @Component({
   selector: 'app-word-editor',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './word-editor.component.html',
   styleUrl: './word-editor.component.scss'
 })
@@ -124,7 +124,8 @@ export class WordEditorComponent implements OnInit, OnDestroy {
   private downloadFile(data: SaveDocumentData): void {
     try {
       const mimeType = FILE_MIME_MAP[data.fileType] || FILE_MIME_MAP['docx'];
-      const blob = new Blob([data.binData], { type: mimeType });
+      const binaryData = new Uint8Array(data.binData);
+      const blob = new Blob([binaryData], { type: mimeType });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;

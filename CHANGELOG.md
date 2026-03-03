@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 本檔案記錄 Versadesk OnlyOffice Word 專案的所有重要變更。
 
@@ -59,3 +59,20 @@
 ### 驗證
 
 - 已執行 `npm run build`，建置通過。
+
+## [1.0.3] - 2026-03-03
+
+### 升級
+
+- 將 Angular 相關套件由 `20.x` 升級至 `21.2.0`（包含 `@angular/core`、`@angular/cli`、`@angular-devkit/build-angular`、`@angular/compiler-cli` 等）。
+- 新增套件 `@angular/elements@^21.2.0`，並同步更新 `package-lock.json`。
+- 升級過程同步更新 `typescript` 至 `~5.9.3`（由 Angular 21 相依需求帶入）。
+
+### 修正
+
+- 修正 `src/app/pages/word-editor/word-editor.component.ts` 在 Angular 21 / TypeScript 5.9 下的型別不相容問題：
+- 將 `new Blob([data.binData], ...)` 調整為先轉為 `Uint8Array` 再建立 `Blob`，避免 `BlobPart` 型別錯誤（`TS2322`）。
+
+### 驗證
+
+- 執行 `npm run build`，建置成功，輸出目錄為 `dist/versadesk-onlyoffice-word`。
