@@ -54,9 +54,6 @@ public/
 ├── sdkjs/                        # OnlyOffice SDK（含繁體中文字型縮圖）
 ├── wasm/                         # x2t WebAssembly 轉換器
 └── fonts/                        # 開源字型
-
-scripts/
-└── generate-font-thumbnails-tw.html  # 繁體中文字型縮圖產生器
 ```
 
 ## 安裝與啟動
