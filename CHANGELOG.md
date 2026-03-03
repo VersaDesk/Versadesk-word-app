@@ -47,3 +47,15 @@
 ### 部署與建置
 
 - `build` 腳本調整為 `ng build --base-href ./`，提高靜態部署（子路徑、子資料夾）相容性。
+
+## [1.0.2] - 2026-03-03
+
+### 變更
+
+- 將 Angular 應用改為使用 zoneless 變更偵測：把 `provideZoneChangeDetection(...)` 改成 `provideZonelessChangeDetection()`。
+- 移除 Angular CLI 設定中的 `zone.js` polyfills（`angular.json` 的 `build` 與 `test` 目標）。
+- 從 `package.json` 移除 `zone.js` 執行時依賴（`package-lock.json` 已透過 `npm uninstall zone.js` 更新）。
+
+### 驗證
+
+- 已執行 `npm run build`，建置通過。
