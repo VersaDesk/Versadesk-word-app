@@ -25,8 +25,19 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Zip dist
+        run: |
+          cd dist
+          zip -r versadesk-onlyoffice-word.zip versadesk-onlyoffice-word
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: versadesk-onlyoffice-word-dist
-          path: dist/versadesk-onlyoffice-word
+          path: dist/versadesk-onlyoffice-word.zip
+
+      - name: Upload to Release Assets
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/versadesk-onlyoffice-word.zip
