@@ -1,7 +1,7 @@
 {
   "name": "versadesk-onlyoffice-word",
   "version": "1.0.0",
-  "description": "OnlyOffice Word 文件編輯器 - Angular v20",
+  "description": "OnlyOffice Word 文件編輯器",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --port 4200",

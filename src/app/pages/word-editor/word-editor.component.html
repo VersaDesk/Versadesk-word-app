@@ -1,19 +1,18 @@
 <!-- 主容器 -->
 <div class="editor-layout">
-
   <!-- ── 頂部工具列 ── -->
   <header class="toolbar" role="banner">
     <div class="toolbar__brand">
       <div class="toolbar__logo" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
-          <path d="M14 2v6h6" fill="none" stroke="white" stroke-width="1.5"/>
-          <path d="M9 13h6M9 17h4" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" />
+          <path d="M14 2v6h6" fill="none" stroke="white" stroke-width="1.5" />
+          <path d="M9 13h6M9 17h4" stroke="white" stroke-width="1.5" stroke-linecap="round" />
         </svg>
       </div>
       <div class="toolbar__title">
         <span class="toolbar__app-name">OnlyOffice</span>
-        <span class="toolbar__subtitle">Word 文件編輯器</span>
+        <span class="toolbar__subtitle">Word 文件編輯器 v1.0.0</span>
       </div>
     </div>
 
@@ -22,8 +21,8 @@
       <div class="toolbar__file-info" role="status" aria-live="polite">
         <div class="toolbar__file-icon" aria-hidden="true">
           <svg viewBox="0 0 16 16" fill="currentColor">
-            <path d="M9 2H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6L9 2z"/>
-            <path d="M9 2v4h4" fill="white" opacity="0.5"/>
+            <path d="M9 2H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6L9 2z" />
+            <path d="M9 2v4h4" fill="white" opacity="0.5" />
           </svg>
         </div>
         <div class="toolbar__file-meta">
@@ -37,51 +36,34 @@
 
     <!-- 工具列操作按鈕 -->
     <nav class="toolbar__actions" role="toolbar" aria-label="編輯器工具列">
-
       <!-- 唯讀切換 -->
       @if (isReady()) {
-        <button
-          class="btn btn--icon"
-          [class.btn--active]="isReadOnly()"
-          (click)="onToggleReadOnly()"
-          [title]="isReadOnly() ? '切換為編輯模式' : '切換為唯讀模式'"
-          [attr.aria-pressed]="isReadOnly()"
-          aria-label="唯讀模式">
+        <button class="btn btn--icon" [class.btn--active]="isReadOnly()" (click)="onToggleReadOnly()" [title]="isReadOnly() ? '切換為編輯模式' : '切換為唯讀模式'" [attr.aria-pressed]="isReadOnly()" aria-label="唯讀模式">
           <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             @if (isReadOnly()) {
-              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-              <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+              <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
             } @else {
-              <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+              <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd" />
             }
           </svg>
-          <span class="btn__label">{{ isReadOnly() ? '唯讀中' : '編輯中' }}</span>
+          <span class="btn__label">{{ isReadOnly() ? "唯讀中" : "編輯中" }}</span>
         </button>
       }
 
       <!-- 上傳新文件 -->
-      <button
-        class="btn btn--secondary"
-        (click)="onUploadClick()"
-        [disabled]="isLoading()"
-        title="上傳 Word 文件"
-        aria-label="上傳文件">
+      <button class="btn btn--secondary" (click)="onUploadClick()" [disabled]="isLoading()" title="上傳 Word 文件" aria-label="上傳文件">
         <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+          <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
         </svg>
         <span>上傳文件</span>
       </button>
 
       <!-- 新建文件 -->
       @if (isIdle() || isReady() || isError()) {
-        <button
-          class="btn btn--outline"
-          (click)="onCreateNew()"
-          [disabled]="isLoading()"
-          title="建立新的空白文件"
-          aria-label="新建文件">
+        <button class="btn btn--outline" (click)="onCreateNew()" [disabled]="isLoading()" title="建立新的空白文件" aria-label="新建文件">
           <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V8z" clip-rule="evenodd"/>
+            <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V8z" clip-rule="evenodd" />
           </svg>
           <span>新建文件</span>
         </button>
@@ -89,41 +71,36 @@
 
       <!-- 匯出/儲存 -->
       @if (isReady()) {
-        <button
-          class="btn btn--primary"
-          (click)="onExport()"
-          [disabled]="isExporting()"
-          title="下載目前文件"
-          aria-label="下載文件">
+        <button class="btn btn--primary" (click)="onExport()" [disabled]="isExporting()" title="下載目前文件" aria-label="下載文件">
           @if (isExporting()) {
             <svg class="animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity="0.25"/>
-              <path d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" fill="currentColor"/>
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity="0.25" />
+              <path d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" fill="currentColor" />
             </svg>
             <span>匯出中...</span>
           } @else {
             <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+              <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
             </svg>
             <span>下載文件</span>
           }
         </button>
       }
     </nav>
+
+    <a class="toolbar__github" href="https://github.com/VersaDesk/Versadesk-word-app" target="_blank" rel="noopener noreferrer" aria-label="Open GitHub repository" title="GitHub">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path
+          d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2.18c-3.2.7-3.88-1.36-3.88-1.36-.53-1.33-1.28-1.68-1.28-1.68-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.2 1.77 1.2 1.03 1.76 2.7 1.25 3.36.95.1-.75.4-1.25.73-1.54-2.55-.29-5.22-1.27-5.22-5.67 0-1.25.45-2.27 1.2-3.08-.12-.3-.52-1.5.11-3.12 0 0 .98-.32 3.2 1.18a11.13 11.13 0 0 1 5.82 0c2.22-1.5 3.2-1.18 3.2-1.18.63 1.62.23 2.82.11 3.12.75.81 1.2 1.83 1.2 3.08 0 4.4-2.67 5.37-5.22 5.67.41.35.78 1.02.78 2.06v3.06c0 .31.2.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"
+        />
+      </svg>
+    </a>
   </header>
 
   <!-- ── 主內容區 ── -->
   <main class="editor-main" role="main">
-
     <!-- 隱藏的檔案輸入 -->
-    <input
-      #fileInput
-      type="file"
-      [accept]="'.docx,.doc,.odt,.rtf,.txt'"
-      (change)="onFileChange($event)"
-      style="display:none"
-      aria-hidden="true"
-    />
+    <input #fileInput type="file" [accept]="'.docx,.doc,.odt,.rtf,.txt'" (change)="onFileChange($event)" style="display: none" aria-hidden="true" />
 
     <!-- 🔵 載入中狀態 -->
     @if (isLoading()) {
@@ -131,13 +108,15 @@
         <div class="loading-card">
           <div class="loading-spinner" aria-hidden="true">
             <svg class="animate-spin" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="#e2e8f0" stroke-width="3"/>
-              <path d="M4 12a8 8 0 018-8" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
+              <circle cx="12" cy="12" r="10" stroke="#e2e8f0" stroke-width="3" />
+              <path d="M4 12a8 8 0 018-8" stroke="#2563eb" stroke-width="3" stroke-linecap="round" />
             </svg>
           </div>
-          <p class="loading-message">{{ loadingMessage() || '載入中...' }}</p>
+          <p class="loading-message">{{ loadingMessage() || "載入中..." }}</p>
           <div class="loading-dots" aria-hidden="true">
-            <span></span><span></span><span></span>
+            <span></span>
+            <span></span>
+            <span></span>
           </div>
         </div>
       </div>
@@ -149,17 +128,8 @@
          DocsAPI.DocEditor() 找不到此 div → 永遠卡在「正在啟動編輯器...」
          改用 CSS class 控制顯示/隱藏。
     -->
-    <div
-      [id]="containerId"
-      class="onlyoffice-container"
-      [class.onlyoffice-container--hidden]="!isReady()"
-      role="application"
-      [attr.aria-label]="'Word 文件編輯器：' + fileName()"
-      aria-describedby="editor-desc">
-    </div>
-    <span id="editor-desc" class="sr-only">
-      OnlyOffice Word 文件編輯器，目前開啟的文件為 {{ fileName() }}
-    </span>
+    <div [id]="containerId" class="onlyoffice-container" [class.onlyoffice-container--hidden]="!isReady()" role="application" [attr.aria-label]="'Word 文件編輯器：' + fileName()" aria-describedby="editor-desc"></div>
+    <span id="editor-desc" class="sr-only">OnlyOffice Word 文件編輯器，目前開啟的文件為 {{ fileName() }}</span>
 
     <!-- 🔴 錯誤狀態 -->
     @if (isError()) {
@@ -167,7 +137,7 @@
         <div class="error-card">
           <div class="error-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="currentColor">
-              <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm-1 5a1 1 0 012 0v5a1 1 0 01-2 0V7zm1 10a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" clip-rule="evenodd"/>
+              <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm-1 5a1 1 0 012 0v5a1 1 0 01-2 0V7zm1 10a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" clip-rule="evenodd" />
             </svg>
           </div>
           <h2 class="error-title">發生錯誤</h2>
@@ -175,7 +145,10 @@
           <div class="error-hint">
             <p>請確認：</p>
             <ul>
-              <li>OnlyOffice 靜態資源已正確部署至 <code>web-apps/</code></li>
+              <li>
+                OnlyOffice 靜態資源已正確部署至
+                <code>web-apps/</code>
+              </li>
               <li>瀏覽器支援 WebAssembly</li>
               <li>檔案格式受支援（{{ allowedExtensions }}）</li>
             </ul>
@@ -183,7 +156,7 @@
           <div class="error-actions">
             <button class="btn btn--primary" (click)="onReset()">
               <svg viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
               </svg>
               重新開始
             </button>
@@ -194,32 +167,23 @@
 
     <!-- ⚪ 初始狀態：上傳區域 -->
     @if (isIdle()) {
-      <div
-        class="upload-area"
-        [class.upload-area--dragover]="isDragOver()"
-        (dragover)="onDragOver($event)"
-        (dragleave)="onDragLeave($event)"
-        (drop)="onDrop($event)"
-        role="region"
-        aria-label="文件上傳區域"
-        aria-describedby="upload-desc">
-
+      <div class="upload-area" [class.upload-area--dragover]="isDragOver()" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)" role="region" aria-label="文件上傳區域" aria-describedby="upload-desc">
         <div class="upload-content animate-fade-in">
           <!-- 上傳圖示 -->
           <div class="upload-illustration" aria-hidden="true">
             <div class="upload-icon-wrapper">
               <svg class="upload-doc-icon" viewBox="0 0 80 96" fill="none">
-                <rect x="4" y="4" width="56" height="72" rx="6" fill="#eff6ff" stroke="#bfdbfe" stroke-width="2"/>
-                <rect x="12" y="4" width="48" height="72" rx="6" fill="white" stroke="#dbeafe" stroke-width="2"/>
-                <path d="M44 4v20h20" stroke="#93c5fd" stroke-width="2" stroke-linecap="round"/>
-                <rect x="20" y="36" width="24" height="2.5" rx="1.25" fill="#93c5fd"/>
-                <rect x="20" y="44" width="32" height="2.5" rx="1.25" fill="#bfdbfe"/>
-                <rect x="20" y="52" width="28" height="2.5" rx="1.25" fill="#bfdbfe"/>
-                <rect x="20" y="60" width="20" height="2.5" rx="1.25" fill="#dbeafe"/>
+                <rect x="4" y="4" width="56" height="72" rx="6" fill="#eff6ff" stroke="#bfdbfe" stroke-width="2" />
+                <rect x="12" y="4" width="48" height="72" rx="6" fill="white" stroke="#dbeafe" stroke-width="2" />
+                <path d="M44 4v20h20" stroke="#93c5fd" stroke-width="2" stroke-linecap="round" />
+                <rect x="20" y="36" width="24" height="2.5" rx="1.25" fill="#93c5fd" />
+                <rect x="20" y="44" width="32" height="2.5" rx="1.25" fill="#bfdbfe" />
+                <rect x="20" y="52" width="28" height="2.5" rx="1.25" fill="#bfdbfe" />
+                <rect x="20" y="60" width="20" height="2.5" rx="1.25" fill="#dbeafe" />
               </svg>
               <div class="upload-arrow" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none">
-                  <path d="M12 20V4M6 10l6-6 6 6" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M12 20V4M6 10l6-6 6 6" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
               </div>
             </div>
@@ -228,20 +192,15 @@
           <!-- 上傳文字 -->
           <div class="upload-text">
             <h1 class="upload-title">上傳 Word 文件</h1>
-            <p class="upload-subtitle" id="upload-desc">
-              將文件拖曳至此處，或點擊按鈕選擇檔案
-            </p>
+            <p class="upload-subtitle" id="upload-desc">將文件拖曳至此處，或點擊按鈕選擇檔案</p>
             <p class="upload-hint">支援格式：{{ allowedExtensions }}</p>
           </div>
 
           <!-- 上傳操作 -->
           <div class="upload-actions">
-            <button
-              class="btn btn--primary btn--lg"
-              (click)="onUploadClick()"
-              aria-describedby="upload-desc">
+            <button class="btn btn--primary btn--lg" (click)="onUploadClick()" aria-describedby="upload-desc">
               <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
               </svg>
               選擇文件
             </button>
@@ -250,11 +209,9 @@
               <span>或</span>
             </div>
 
-            <button
-              class="btn btn--outline btn--lg"
-              (click)="onCreateNew()">
+            <button class="btn btn--outline btn--lg" (click)="onCreateNew()">
               <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V8z" clip-rule="evenodd"/>
+                <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V8z" clip-rule="evenodd" />
               </svg>
               建立新文件
             </button>
@@ -282,23 +239,19 @@
 
   <!-- ── 通知訊息 ── -->
   @if (showNotification()) {
-    <div
-      class="notification"
-      [class]="'notification--' + notificationType()"
-      role="alert"
-      aria-live="assertive">
+    <div class="notification" [class]="'notification--' + notificationType()" role="alert" aria-live="assertive">
       <div class="notification__icon" aria-hidden="true">
-        @if (notificationType() === 'success') {
+        @if (notificationType() === "success") {
           <svg viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
           </svg>
-        } @else if (notificationType() === 'error') {
+        } @else if (notificationType() === "error") {
           <svg viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
           </svg>
         } @else {
           <svg viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
           </svg>
         }
       </div>

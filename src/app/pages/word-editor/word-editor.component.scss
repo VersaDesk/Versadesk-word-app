@@ -133,6 +133,33 @@
     margin-left: auto;
     flex-shrink: 0;
   }
+
+  &__github {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin-left: 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+    background: white;
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+    transition: var(--transition);
+
+    &:hover {
+      color: var(--text-primary);
+      background: var(--surface-secondary);
+      border-color: var(--border-hover);
+    }
+
+    svg {
+      width: 17px;
+      height: 17px;
+    }
+  }
 }
 
 // ── 按鈕系統 ─────────────────────────────────────────────
@@ -663,6 +690,11 @@
     &__file-info { max-width: 180px; }
 
     &__actions { gap: 6px; }
+    &__github {
+      width: 30px;
+      height: 30px;
+      margin-left: 4px;
+    }
   }
 
   .btn {

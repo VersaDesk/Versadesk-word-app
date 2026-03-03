@@ -76,3 +76,15 @@
 ### 驗證
 
 - 執行 `npm run build`，建置成功，輸出目錄為 `dist/versadesk-onlyoffice-word`。
+
+## [1.0.4] - 2026-03-03
+
+### 變更
+
+- 在編輯器頁面 Header 新增 GitHub 圖示按鈕，連結到 `https://github.com/VersaDesk/Versadesk-word-app`。
+- GitHub 按鈕設定為新分頁開啟，並加入 `rel="noopener noreferrer"` 安全屬性。
+- 新增對應樣式（含 hover 與行動版尺寸調整），使其與現有工具列風格一致。
+
+### 驗證
+
+- 已執行 `npm run build`，建置通過。
